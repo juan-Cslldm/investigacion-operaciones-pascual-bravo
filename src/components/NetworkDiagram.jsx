@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Maximize2, ShieldCheck, Flame } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 export default function NetworkDiagram({ nodes, links, criticalPaths, projectDuration }) {
   const [zoom, setZoom] = useState(1);
@@ -10,14 +10,13 @@ export default function NetworkDiagram({ nodes, links, criticalPaths, projectDur
 
   if (!nodes || nodes.length === 0) {
     return (
-      <div className="p-8 text-center text-slate-500 bg-white rounded-xl border border-slate-200">
-        No hay datos para construir la red de actividades.
+      <div className="p-12 text-center text-slate-400 text-sm">
+        Ingresa actividades con sus duraciones para visualizar la red.
       </div>
     );
   }
 
-  // Calculate layout coordinates based on topological layers
-  // Layer spacing along X axis, vertical distribution along Y axis
+  // Group nodes by topological layer
   const layerMap = new Map();
   nodes.forEach((n) => {
     const l = n.layer ?? 0;
@@ -25,10 +24,10 @@ export default function NetworkDiagram({ nodes, links, criticalPaths, projectDur
     layerMap.get(l).push(n);
   });
 
-  const NODE_WIDTH = 130;
-  const NODE_HEIGHT = 76;
-  const X_SPACING = 200;
-  const Y_SPACING = 110;
+  const NODE_W = 120;
+  const NODE_H = 72;
+  const X_GAP = 180;
+  const Y_GAP = 96;
 
   const nodePositions = new Map();
   const sortedLayers = Array.from(layerMap.keys()).sort((a, b) => a - b);
@@ -39,22 +38,21 @@ export default function NetworkDiagram({ nodes, links, criticalPaths, projectDur
     if (count > maxNodesInLayer) maxNodesInLayer = count;
   });
 
-  const totalHeight = Math.max(maxNodesInLayer * Y_SPACING + 100, 450);
-  const totalWidth = Math.max((sortedLayers.length + 1) * X_SPACING + 100, 800);
+  const totalHeight = Math.max(maxNodesInLayer * Y_GAP + 80, 400);
 
   sortedLayers.forEach((l, colIndex) => {
     const layerNodes = layerMap.get(l);
-    const layerHeight = layerNodes.length * Y_SPACING;
-    const startY = (totalHeight - layerHeight) / 2 + 30;
+    const layerHeight = layerNodes.length * Y_GAP;
+    const startY = (totalHeight - layerHeight) / 2 + 20;
 
     layerNodes.forEach((n, rowIndex) => {
-      const x = 50 + colIndex * X_SPACING;
-      const y = startY + rowIndex * Y_SPACING;
+      const x = 40 + colIndex * X_GAP;
+      const y = startY + rowIndex * Y_GAP;
       nodePositions.set(n.id, { x, y });
     });
   });
 
-  // Pan and drag handlers
+  // Pan controls
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -72,142 +70,111 @@ export default function NetworkDiagram({ nodes, links, criticalPaths, projectDur
 
   return (
     <div className="space-y-3">
-      {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div>
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <Flame className="w-5 h-5 text-rose-600" />
-            Red de Actividades (AON - Diapositiva 22, 26 y 33)
-          </h3>
-          <p className="text-xs text-slate-500">
-            Formato estándar CPM: Tiempos más tempranos (ES, EF) arriba, tiempos tardíos (LS, LF) y duración abajo. Holgura en la base.
-          </p>
+      {/* Subtle Controls Header */}
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-900"></span>
+            <span className="text-slate-700 font-medium">Ruta crítica (H=0)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+            <span>No crítica</span>
+          </div>
         </div>
 
-        {/* Zoom & Reset Controls */}
-        <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+        <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-md p-0.5 shadow-2xs">
           <button
-            onClick={() => setZoom((z) => Math.min(z + 0.15, 2.5))}
-            className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition"
-            title="Acercar (Zoom In)"
+            onClick={() => setZoom((z) => Math.min(z + 0.15, 2))}
+            className="p-1 hover:bg-slate-100 rounded text-slate-600 transition"
+            title="Zoom in"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="w-3.5 h-3.5" />
           </button>
-          <span className="text-xs font-mono font-bold text-slate-600 px-1.5 min-w-[45px] text-center">
+          <span className="font-mono text-[11px] px-1 min-w-[36px] text-center text-slate-600">
             {Math.round(zoom * 100)}%
           </span>
           <button
-            onClick={() => setZoom((z) => Math.max(z - 0.15, 0.4))}
-            className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition"
-            title="Alejar (Zoom Out)"
+            onClick={() => setZoom((z) => Math.max(z - 0.15, 0.5))}
+            className="p-1 hover:bg-slate-100 rounded text-slate-600 transition"
+            title="Zoom out"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <div className="w-px h-4 bg-slate-200 mx-1"></div>
+          <div className="w-px h-3 bg-slate-200 mx-0.5"></div>
           <button
             onClick={() => {
               setZoom(1);
               setPan({ x: 40, y: 30 });
             }}
-            className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition flex items-center gap-1 text-xs"
-            title="Restablecer Vista"
+            className="p-1 hover:bg-slate-100 rounded text-slate-600 transition"
+            title="Centrar"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* SVG Canvas Container */}
+      {/* SVG Canvas - Warm Gray Paper Background */}
       <div
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        className="w-full h-[520px] bg-slate-900 rounded-xl border border-slate-800 shadow-inner overflow-hidden relative cursor-grab active:cursor-grabbing select-none"
+        className="w-full h-[460px] bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden relative cursor-grab active:cursor-grabbing select-none"
       >
-        {/* Subtle grid pattern background */}
+        {/* Subtle architectural grid */}
         <div
-          className="absolute inset-0 opacity-15 pointer-events-none"
+          className="absolute inset-0 opacity-[0.035] pointer-events-none"
           style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, #94a3b8 1px, transparent 0)',
-            backgroundSize: '24px 24px',
+            backgroundImage: 'radial-gradient(circle at 1px 1px, #0f172a 1px, transparent 0)',
+            backgroundSize: '20px 20px',
           }}
         />
 
-        {/* Legend Overlay */}
-        <div className="absolute bottom-3 left-3 bg-slate-950/85 backdrop-blur-md border border-slate-800 rounded-xl p-2.5 text-[11px] text-slate-300 space-y-1.5 z-10 shadow-lg">
-          <div className="font-bold text-slate-200 mb-1 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            Leyenda de la Red:
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-rose-500 shadow-sm shadow-rose-500"></div>
-            <span className="font-semibold text-rose-300">Ruta Crítica (H = 0)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-0.5 bg-slate-500"></div>
-            <span>Actividad no crítica</span>
-          </div>
-          <div className="text-[10px] text-slate-400 font-mono pt-1 border-t border-slate-800">
-            [ES | ID | EF] / [LS | Dur | LF]
-          </div>
-        </div>
-
-        {/* SVG Drawing */}
-        <svg
-          className="w-full h-full"
-          style={{ overflow: 'visible' }}
-        >
+        <svg className="w-full h-full" style={{ overflow: 'visible' }}>
           <defs>
-            {/* Arrow marker for non-critical */}
+            {/* Elegant thin arrowheads */}
             <marker
-              id="arrow-normal"
+              id="edge-normal"
               viewBox="0 0 10 10"
-              refX="9"
+              refX="8"
               refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
+              markerWidth="5"
+              markerHeight="5"
+              orient="auto"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#94a3b8" />
             </marker>
-            {/* Arrow marker for critical */}
             <marker
-              id="arrow-critical"
+              id="edge-critical"
               viewBox="0 0 10 10"
-              refX="9"
+              refX="8"
               refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto-start-reverse"
+              markerWidth="5.5"
+              markerHeight="5.5"
+              orient="auto"
             >
-              <path d="M 0 0.5 L 10 5 L 0 9.5 z" fill="#f43f5e" />
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#0f172a" />
             </marker>
-            {/* Glow filter for critical elements */}
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
 
           <g
             transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
-            style={{ transition: isDragging ? 'none' : 'transform 0.1s ease-out' }}
+            style={{ transition: isDragging ? 'none' : 'transform 0.12s ease-out' }}
           >
-            {/* Render Links (Arrows) */}
+            {/* Links / Connectors */}
             {links.map((link, idx) => {
-              const srcPos = nodePositions.get(link.source);
-              const tgtPos = nodePositions.get(link.target);
-              if (!srcPos || !tgtPos) return null;
+              const src = nodePositions.get(link.source);
+              const tgt = nodePositions.get(link.target);
+              if (!src || !tgt) return null;
 
-              const x1 = srcPos.x + NODE_WIDTH;
-              const y1 = srcPos.y + NODE_HEIGHT / 2;
-              const x2 = tgtPos.x;
-              const y2 = tgtPos.y + NODE_HEIGHT / 2;
+              const x1 = src.x + NODE_W;
+              const y1 = src.y + NODE_H / 2;
+              const x2 = tgt.x;
+              const y2 = tgt.y + NODE_H / 2;
 
-              // Smooth Bezier Curve
               const dx = x2 - x1;
               const cx1 = x1 + dx * 0.45;
               const cy1 = y1;
@@ -216,197 +183,164 @@ export default function NetworkDiagram({ nodes, links, criticalPaths, projectDur
               const pathData = `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
 
               return (
-                <g key={`link-${idx}`}>
-                  {/* Background wider line for critical glow */}
-                  {link.isCritical && (
-                    <path
-                      d={pathData}
-                      fill="none"
-                      stroke="#f43f5e"
-                      strokeWidth="5"
-                      strokeOpacity="0.3"
-                    />
-                  )}
-                  <path
-                    d={pathData}
-                    fill="none"
-                    stroke={link.isCritical ? '#f43f5e' : '#475569'}
-                    strokeWidth={link.isCritical ? '2.5' : '1.5'}
-                    markerEnd={`url(#${link.isCritical ? 'arrow-critical' : 'arrow-normal'})`}
-                    className="transition-colors"
-                  />
-                </g>
+                <path
+                  key={`link-${idx}`}
+                  d={pathData}
+                  fill="none"
+                  stroke={link.isCritical ? '#0f172a' : '#cbd5e1'}
+                  strokeWidth={link.isCritical ? '2' : '1.25'}
+                  markerEnd={`url(#${link.isCritical ? 'edge-critical' : 'edge-normal'})`}
+                />
               );
             })}
 
-            {/* Render Nodes (Activity Boxes) */}
+            {/* Clean Editorial Nodes */}
             {nodes.map((node) => {
               const pos = nodePositions.get(node.id);
               if (!pos) return null;
 
               const isCrit = node.isCritical;
-              const isSpecial = node.id === 'INICIO' || node.id === 'FIN';
+              const isBoundary = node.id === 'INICIO' || node.id === 'FIN';
 
               return (
-                <g
-                  key={`node-${node.id}`}
-                  transform={`translate(${pos.x}, ${pos.y})`}
-                  className="cursor-pointer group"
-                >
-                  {/* Outer box */}
+                <g key={`node-${node.id}`} transform={`translate(${pos.x}, ${pos.y})`}>
+                  {/* Card Body */}
                   <rect
-                    width={NODE_WIDTH}
-                    height={NODE_HEIGHT}
+                    width={NODE_W}
+                    height={NODE_H}
                     rx="8"
                     ry="8"
-                    fill={isCrit ? '#1e1b2e' : '#0f172a'}
-                    stroke={isCrit ? '#f43f5e' : '#334155'}
-                    strokeWidth={isCrit ? '2.5' : '1.5'}
-                    filter={isCrit ? 'url(#glow)' : undefined}
-                    className="transition-all"
+                    fill={isCrit ? '#ffffff' : '#ffffff'}
+                    stroke={isCrit ? '#0f172a' : '#e2e8f0'}
+                    strokeWidth={isCrit ? '2' : '1'}
+                    className="shadow-2xs"
                   />
 
-                  {/* Horizontal dividing lines */}
+                  {/* Horizontal dividers */}
                   <line
                     x1="0"
-                    y1={NODE_HEIGHT * 0.42}
-                    x2={NODE_WIDTH}
-                    y2={NODE_HEIGHT * 0.42}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
-                    strokeWidth="1"
+                    y1={NODE_H * 0.44}
+                    x2={NODE_W}
+                    y2={NODE_H * 0.44}
+                    stroke={isCrit ? '#0f172a' : '#f1f5f9'}
+                    strokeWidth={isCrit ? '1.25' : '1'}
                   />
                   <line
                     x1="0"
-                    y1={NODE_HEIGHT * 0.76}
-                    x2={NODE_WIDTH}
-                    y2={NODE_HEIGHT * 0.76}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
+                    y1={NODE_H * 0.74}
+                    x2={NODE_W}
+                    y2={NODE_H * 0.74}
+                    stroke="#f1f5f9"
                     strokeWidth="1"
                   />
 
-                  {/* Vertical dividers in top section */}
+                  {/* Vertical dividers */}
                   <line
-                    x1={NODE_WIDTH * 0.3}
+                    x1={NODE_W * 0.3}
                     y1="0"
-                    x2={NODE_WIDTH * 0.3}
-                    y2={NODE_HEIGHT * 0.42}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
+                    x2={NODE_W * 0.3}
+                    y2={NODE_H * 0.74}
+                    stroke="#f1f5f9"
                     strokeWidth="1"
                   />
                   <line
-                    x1={NODE_WIDTH * 0.7}
+                    x1={NODE_W * 0.7}
                     y1="0"
-                    x2={NODE_WIDTH * 0.7}
-                    y2={NODE_HEIGHT * 0.42}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
+                    x2={NODE_W * 0.7}
+                    y2={NODE_H * 0.74}
+                    stroke="#f1f5f9"
                     strokeWidth="1"
                   />
 
-                  {/* Vertical dividers in middle section */}
-                  <line
-                    x1={NODE_WIDTH * 0.3}
-                    y1={NODE_HEIGHT * 0.42}
-                    x2={NODE_WIDTH * 0.3}
-                    y2={NODE_HEIGHT * 0.76}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
-                    strokeWidth="1"
-                  />
-                  <line
-                    x1={NODE_WIDTH * 0.7}
-                    y1={NODE_HEIGHT * 0.42}
-                    x2={NODE_WIDTH * 0.7}
-                    y2={NODE_HEIGHT * 0.76}
-                    stroke={isCrit ? '#881337' : '#1e293b'}
-                    strokeWidth="1"
-                  />
-
-                  {/* Text labels */}
-                  {/* Top-Left: ES */}
+                  {/* Top: ES | ID | EF */}
                   <text
-                    x={NODE_WIDTH * 0.15}
-                    y={NODE_HEIGHT * 0.28}
+                    x={NODE_W * 0.15}
+                    y={NODE_H * 0.3}
                     textAnchor="middle"
-                    fill={isCrit ? '#fca5a5' : '#94a3b8'}
-                    fontSize="11"
+                    fill="#64748b"
+                    fontSize="10"
                     fontFamily="monospace"
-                    fontWeight="bold"
                   >
                     {node.es}
                   </text>
 
-                  {/* Top-Center: Activity ID */}
                   <text
-                    x={NODE_WIDTH * 0.5}
-                    y={NODE_HEIGHT * 0.28}
+                    x={NODE_W * 0.5}
+                    y={NODE_H * 0.31}
                     textAnchor="middle"
-                    fill={isCrit ? '#ffffff' : '#f8fafc'}
-                    fontSize="13"
-                    fontWeight="800"
+                    fill={isCrit ? '#0f172a' : '#334155'}
+                    fontSize="11"
+                    fontWeight="700"
                   >
                     {node.id}
                   </text>
 
-                  {/* Top-Right: EF */}
                   <text
-                    x={NODE_WIDTH * 0.85}
-                    y={NODE_HEIGHT * 0.28}
+                    x={NODE_W * 0.85}
+                    y={NODE_H * 0.3}
                     textAnchor="middle"
-                    fill={isCrit ? '#fca5a5' : '#94a3b8'}
-                    fontSize="11"
+                    fill="#64748b"
+                    fontSize="10"
                     fontFamily="monospace"
-                    fontWeight="bold"
                   >
                     {node.ef}
                   </text>
 
-                  {/* Mid-Left: LS */}
+                  {/* Middle: LS | Duration | LF */}
                   <text
-                    x={NODE_WIDTH * 0.15}
-                    y={NODE_HEIGHT * 0.62}
+                    x={NODE_W * 0.15}
+                    y={NODE_H * 0.62}
                     textAnchor="middle"
-                    fill={isCrit ? '#fda4af' : '#64748b'}
-                    fontSize="11"
+                    fill="#94a3b8"
+                    fontSize="10"
                     fontFamily="monospace"
                   >
                     {node.ls}
                   </text>
 
-                  {/* Mid-Center: Duration */}
                   <text
-                    x={NODE_WIDTH * 0.5}
-                    y={NODE_HEIGHT * 0.62}
+                    x={NODE_W * 0.5}
+                    y={NODE_H * 0.62}
                     textAnchor="middle"
-                    fill={isCrit ? '#f43f5e' : '#38bdf8'}
-                    fontSize="11"
+                    fill={isCrit ? '#0f172a' : '#64748b'}
+                    fontSize="10"
                     fontFamily="monospace"
-                    fontWeight="bold"
+                    fontWeight="600"
                   >
-                    t={node.duration}
+                    d={node.duration}
                   </text>
 
-                  {/* Mid-Right: LF */}
                   <text
-                    x={NODE_WIDTH * 0.85}
-                    y={NODE_HEIGHT * 0.62}
+                    x={NODE_W * 0.85}
+                    y={NODE_H * 0.62}
                     textAnchor="middle"
-                    fill={isCrit ? '#fda4af' : '#64748b'}
-                    fontSize="11"
+                    fill="#94a3b8"
+                    fontSize="10"
                     fontFamily="monospace"
                   >
                     {node.lf}
                   </text>
 
-                  {/* Bottom: Slack (H) */}
+                  {/* Bottom: Slack */}
+                  <rect
+                    x="0"
+                    y={NODE_H * 0.74}
+                    width={NODE_W}
+                    height={NODE_H * 0.26}
+                    rx="0"
+                    fill={isCrit ? '#0f172a' : '#f8fafc'}
+                    clipPath={`url(#bottom-clip-${node.id})`}
+                  />
                   <text
-                    x={NODE_WIDTH * 0.5}
-                    y={NODE_HEIGHT * 0.92}
+                    x={NODE_W * 0.5}
+                    y={NODE_H * 0.91}
                     textAnchor="middle"
-                    fill={isCrit ? '#fb7185' : '#94a3b8'}
-                    fontSize="10"
+                    fill={isCrit ? '#ffffff' : '#64748b'}
+                    fontSize="9.5"
                     fontFamily="monospace"
-                    fontWeight="600"
+                    fontWeight={isCrit ? '600' : '500'}
                   >
-                    {isCrit ? '★ H = 0 (CRÍTICA)' : `H = ${node.slack}`}
+                    {isCrit ? 'Crítica · H=0' : `Holgura H=${node.slack}`}
                   </text>
                 </g>
               );

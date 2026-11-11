@@ -9,35 +9,21 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-      {/* Navigation Header */}
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 md:py-8">
         {activeTab === 'pert' && <PertCpmModule />}
         {activeTab === 'transport' && <TransportModule />}
         {activeTab === 'theory' && <TheoryGuide />}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 py-6 mt-12 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-center sm:text-left">
-            <p className="font-bold text-slate-200">
-              Investigación de Operaciones — Plataforma de Métodos Cuantitativos
-            </p>
-            <p className="text-slate-500 mt-0.5">
-              Institución Universitaria Pascual Bravo · Medellín, Colombia
-            </p>
+      <footer className="border-t border-slate-200/80 bg-white py-6 mt-12 text-xs text-slate-400">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <div>
+            Investigación de Operaciones · Institución Universitaria Pascual Bravo
           </div>
-
-          <div className="flex items-center gap-4 text-[11px]">
-            <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">
-              Vite + React + Tailwind
-            </span>
-            <span className="text-emerald-400 font-semibold flex items-center gap-1">
-              ● Vercel Ready
-            </span>
+          <div className="text-[11px] text-slate-400 font-mono">
+            Optimización de Redes & Programación Lineal
           </div>
         </div>
       </footer>

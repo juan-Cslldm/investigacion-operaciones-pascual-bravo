@@ -1,13 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Plus, Trash2, RotateCcw, Play, CheckCircle2, AlertTriangle, 
-  Layers, ArrowRight, Table, Network, Calendar, HelpCircle, FileSpreadsheet
-} from 'lucide-react';
+import { Plus, Trash2, RotateCcw, ArrowRight } from 'lucide-react';
 import { calculatePertCpm } from '../algorithms/pertCpm';
 import NetworkDiagram from './NetworkDiagram';
 import GanttChart from './GanttChart';
 
-// Preset Diapositiva 34: Caso Hospital Mi Salud (Pascual Bravo)
+// Preset Diapositiva 34: Caso Hospital Mi Salud
 const PRESET_HOSPITAL = [
   { id: 'A', name: 'Actividad A', duration: 12, predecessors: '' },
   { id: 'B', name: 'Actividad B', duration: 2, predecessors: '' },
@@ -20,7 +17,6 @@ const PRESET_HOSPITAL = [
   { id: 'I', name: 'Actividad I', duration: 1, predecessors: 'G, H' },
 ];
 
-// Preset Diapositiva 16-22: Construcción de una casa
 const PRESET_CASA = [
   { id: 'A', name: 'Cimientos y paredes', duration: 4, predecessors: '' },
   { id: 'B', name: 'Plomería y electricidad', duration: 2, predecessors: 'A' },
@@ -33,14 +29,9 @@ export default function PertCpmModule() {
   const [activities, setActivities] = useState(PRESET_HOSPITAL);
   const [activeSubTab, setActiveSubTab] = useState('network'); // 'network' | 'gantt' | 'table'
 
-  // Run calculation
-  const result = useMemo(() => {
-    return calculatePertCpm(activities);
-  }, [activities]);
+  const result = useMemo(() => calculatePertCpm(activities), [activities]);
 
-  // Handlers for table manipulation
   const handleAddRow = () => {
-    // Generate next letter
     const nextCode = String.fromCharCode(65 + activities.length);
     setActivities([
       ...activities,
@@ -50,16 +41,12 @@ export default function PertCpmModule() {
 
   const handleRemoveRow = (index) => {
     if (activities.length <= 1) return;
-    const newAct = activities.filter((_, i) => i !== index);
-    setActivities(newAct);
+    setActivities(activities.filter((_, i) => i !== index));
   };
 
   const handleChange = (index, field, value) => {
     const updated = [...activities];
-    updated[index] = {
-      ...updated[index],
-      [field]: value
-    };
+    updated[index] = { ...updated[index], [field]: value };
     setActivities(updated);
   };
 
@@ -80,108 +67,97 @@ export default function PertCpmModule() {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner / Case Selection */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-800 uppercase tracking-wider">
-                Módulo 1
-              </span>
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                Planificación de Proyectos PERT / CPM & Ruta Crítica
-              </h2>
-            </div>
-            <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-              Calcula tiempos tempranos (ES, EF), tardíos (LS, LF), holguras y dibuja la red de actividades y el Diagrama de Gantt conforme a los lineamientos de la Institución Universitaria Pascual Bravo.
-            </p>
-          </div>
-
-          {/* Quick Preset Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">
-              Casos Diapositivas:
-            </span>
-            <button
-              onClick={() => setActivities(PRESET_HOSPITAL)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition flex items-center gap-1.5"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Diapositiva 34: Hospital Mi Salud (10 Act.)</span>
-            </button>
-            <button
-              onClick={() => setActivities(PRESET_CASA)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition flex items-center gap-1.5"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Diapositiva 16: Construcción Casa (5 Act.)</span>
-            </button>
-          </div>
+      
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 pb-4 border-b border-slate-200">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+            Planificación de Proyectos · PERT / CPM
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Determinación de tiempos tempranos, tardíos, holguras de eventos y ruta crítica.
+          </p>
         </div>
 
-        {/* Dynamic Table Configuration Controls */}
-        <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
-              Cantidad de Actividades (Filas):
-            </label>
+        {/* Subtle presets */}
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-slate-400 mr-1">Casos:</span>
+          <button
+            onClick={() => setActivities(PRESET_HOSPITAL)}
+            className="px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 transition"
+          >
+            Hospital Mi Salud (10 Act.)
+          </button>
+          <button
+            onClick={() => setActivities(PRESET_CASA)}
+            className="px-2.5 py-1 rounded bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 transition"
+          >
+            Construcción de Casa
+          </button>
+        </div>
+      </div>
+
+      {/* Input Table Card */}
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-600 font-medium">Actividades:</span>
             <input
               type="number"
               min="1"
               max="26"
               value={activities.length}
               onChange={(e) => handleSetRowCount(e.target.value)}
-              className="w-16 px-2.5 py-1 text-sm font-bold text-center border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-14 px-2 py-1 text-center font-mono border border-slate-200 rounded text-slate-800 focus:outline-none focus:border-slate-900"
             />
             <button
               onClick={handleAddRow}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1 shadow-sm"
+              className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-medium transition flex items-center gap-1"
             >
-              <Plus className="w-3.5 h-3.5" /> Añadir Fila
+              <Plus className="w-3 h-3" /> Fila
             </button>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActivities([])}
-              className="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition flex items-center gap-1"
+              className="text-slate-400 hover:text-slate-600 transition"
             >
-              <Trash2 className="w-3.5 h-3.5" /> Limpiar Todo
+              Limpiar
             </button>
+            <span className="text-slate-200">|</span>
             <button
               onClick={() => setActivities(PRESET_HOSPITAL)}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg border border-slate-200 transition flex items-center gap-1"
+              className="text-slate-500 hover:text-slate-800 flex items-center gap-1 transition"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Restablecer Caso Hospital
+              <RotateCcw className="w-3 h-3" /> Restablecer
             </button>
           </div>
         </div>
 
-        {/* Input Table */}
-        <div className="mt-4 overflow-x-auto border border-slate-200 rounded-xl shadow-inner">
+        {/* Clean Data Table */}
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100 text-slate-700 uppercase font-bold tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
               <tr>
-                <th className="py-2.5 px-3 w-16 text-center">#</th>
-                <th className="py-2.5 px-3 w-28">Actividad (ID)</th>
-                <th className="py-2.5 px-3">Descripción de la Tarea</th>
-                <th className="py-2.5 px-3 w-52">Predecesores Inmediatos</th>
-                <th className="py-2.5 px-3 w-40 text-center">Tiempo Esperado (días)</th>
-                <th className="py-2.5 px-3 w-16 text-center">Acción</th>
+                <th className="py-2.5 px-4 w-12 text-slate-400">#</th>
+                <th className="py-2.5 px-3 w-24">Actividad</th>
+                <th className="py-2.5 px-3">Descripción</th>
+                <th className="py-2.5 px-3 w-48">Predecesores inmediatos</th>
+                <th className="py-2.5 px-3 w-32 text-center">Duración (días)</th>
+                <th className="py-2.5 px-3 w-12 text-center"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {activities.map((act, index) => (
-                <tr key={index} className="hover:bg-blue-50/40 transition">
-                  <td className="py-2 px-3 text-center font-mono font-bold text-slate-400">
-                    {index + 1}
-                  </td>
+                <tr key={index} className="hover:bg-slate-50/50 transition">
+                  <td className="py-2 px-4 font-mono text-slate-400 text-[11px]">{index + 1}</td>
                   <td className="py-2 px-3">
                     <input
                       type="text"
                       value={act.id}
                       onChange={(e) => handleChange(index, 'id', e.target.value.toUpperCase())}
-                      className="w-full px-2 py-1 font-bold text-center border border-slate-200 rounded-md focus:border-blue-500 focus:outline-none uppercase font-mono"
+                      className="w-12 px-1.5 py-0.5 font-bold text-center border border-slate-200 rounded uppercase font-mono focus:outline-none focus:border-slate-900"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -189,8 +165,8 @@ export default function PertCpmModule() {
                       type="text"
                       value={act.name}
                       onChange={(e) => handleChange(index, 'name', e.target.value)}
-                      placeholder={`Descripción tarea ${act.id}`}
-                      className="w-full px-2 py-1 border border-slate-200 rounded-md focus:border-blue-500 focus:outline-none"
+                      placeholder={`Tarea ${act.id}`}
+                      className="w-full px-2 py-0.5 border border-transparent hover:border-slate-200 focus:border-slate-900 rounded focus:outline-none text-slate-700"
                     />
                   </td>
                   <td className="py-2 px-3">
@@ -198,8 +174,8 @@ export default function PertCpmModule() {
                       type="text"
                       value={act.predecessors}
                       onChange={(e) => handleChange(index, 'predecessors', e.target.value)}
-                      placeholder="Ej: A, B  (o vacío si ninguno)"
-                      className="w-full px-2 py-1 font-mono uppercase border border-slate-200 rounded-md focus:border-blue-500 focus:outline-none"
+                      placeholder="-"
+                      className="w-full px-2 py-0.5 font-mono uppercase border border-slate-200 rounded focus:outline-none focus:border-slate-900 text-slate-700"
                     />
                   </td>
                   <td className="py-2 px-3 text-center">
@@ -209,16 +185,16 @@ export default function PertCpmModule() {
                       step="any"
                       value={act.duration}
                       onChange={(e) => handleChange(index, 'duration', e.target.value)}
-                      className="w-24 px-2 py-1 text-center font-mono font-bold border border-slate-200 rounded-md focus:border-blue-500 focus:outline-none"
+                      className="w-20 px-2 py-0.5 text-center font-mono border border-slate-200 rounded focus:outline-none focus:border-slate-900 font-medium"
                     />
                   </td>
                   <td className="py-2 px-3 text-center">
                     <button
                       onClick={() => handleRemoveRow(index)}
-                      className="p-1 hover:bg-rose-100 rounded text-rose-500 hover:text-rose-700 transition"
+                      className="text-slate-300 hover:text-slate-500 p-1"
                       title="Eliminar fila"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </td>
                 </tr>
@@ -226,123 +202,87 @@ export default function PertCpmModule() {
             </tbody>
           </table>
         </div>
-
-        {/* Warning or Error Message if any */}
-        {result.error && (
-          <div className="mt-4 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-semibold flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            <span>{result.error}</span>
-          </div>
-        )}
       </div>
 
-      {/* Results Summary Dashboard */}
+      {/* KPI Cards */}
       {!result.error && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Card 1: Project Duration */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-              Duración Total del Proyecto
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">
+              Duración total del proyecto
             </span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-3xl font-extrabold text-slate-900 font-mono">
-                {result.projectDuration}
-              </span>
-              <span className="text-sm font-semibold text-slate-600">
-                días / unidades
-              </span>
+            <div className="text-2xl font-bold text-slate-900 font-mono mt-0.5">
+              {result.projectDuration} <span className="text-xs font-normal text-slate-500">días</span>
             </div>
-            <p className="text-xs text-slate-400 mt-2">
-              Tiempo mínimo requerido para completar todas las actividades sin retrasos.
-            </p>
           </div>
 
-          {/* Card 2: Critical Path */}
-          <div className="bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl border border-rose-200 p-5 shadow-sm md:col-span-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">
-                Ruta Crítica Determinada (Holgura = 0)
-              </span>
-              <span className="text-xs font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full shadow-sm">
-                {result.criticalActivities.length} actividades críticas
-              </span>
-            </div>
-
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {result.criticalPaths.length > 0 ? (
-                result.criticalPaths.map((path, pIdx) => (
-                  <div key={pIdx} className="flex flex-wrap items-center gap-1.5 bg-white/90 px-3 py-2 rounded-xl border border-rose-200 shadow-sm">
-                    {path.map((actId, idx) => (
-                      <React.Fragment key={idx}>
-                        <span className={`px-2.5 py-1 rounded-md text-xs font-bold font-mono ${
-                          actId === 'Inicio' || actId === 'Fin'
-                            ? 'bg-slate-800 text-white'
-                            : 'bg-rose-600 text-white shadow-sm shadow-rose-500/30'
-                        }`}>
-                          {actId}
-                        </span>
-                        {idx < path.length - 1 && (
-                          <ArrowRight className="w-3.5 h-3.5 text-rose-500" />
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs sm:col-span-2">
+            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">
+              Ruta crítica identificada (Holgura = 0)
+            </span>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-xs font-semibold text-slate-800">
+              {result.criticalPaths[0] ? (
+                result.criticalPaths[0].map((step, idx) => (
+                  <React.Fragment key={idx}>
+                    <span
+                      className={`px-2 py-0.5 rounded ${
+                        step === 'Inicio' || step === 'Fin'
+                          ? 'bg-slate-100 text-slate-600 font-normal'
+                          : 'bg-slate-900 text-white'
+                      }`}
+                    >
+                      {step}
+                    </span>
+                    {idx < result.criticalPaths[0].length - 1 && (
+                      <ArrowRight className="w-3 h-3 text-slate-400" />
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
-                <span className="text-xs text-slate-500 font-medium">No se detectó ruta crítica continua</span>
+                <span className="text-slate-400">Sin ruta crítica</span>
               )}
             </div>
-            <p className="text-xs text-rose-700 mt-2">
-              Cualquier retraso en estas actividades aplazará directamente la fecha de finalización del proyecto.
-            </p>
           </div>
         </div>
       )}
 
-      {/* Subtabs for Visualizations */}
+      {/* View Switcher Tabs */}
       {!result.error && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
-          <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setActiveSubTab('network')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  activeSubTab === 'network'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <Network className="w-4 h-4" />
-                <span>Red de Actividades (Diapositiva 22)</span>
-              </button>
-
-              <button
-                onClick={() => setActiveSubTab('gantt')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  activeSubTab === 'gantt'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Diagrama de Gantt Interactivo</span>
-              </button>
-
-              <button
-                onClick={() => setActiveSubTab('table')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  activeSubTab === 'table'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <Table className="w-4 h-4" />
-                <span>Tabla de Tiempos y Holguras</span>
-              </button>
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-1 border-b border-slate-200 text-xs">
+            <button
+              onClick={() => setActiveSubTab('network')}
+              className={`pb-2.5 px-3 font-medium transition border-b-2 -mb-px ${
+                activeSubTab === 'network'
+                  ? 'border-slate-900 text-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Red de Actividades (AON)
+            </button>
+            <button
+              onClick={() => setActiveSubTab('gantt')}
+              className={`pb-2.5 px-3 font-medium transition border-b-2 -mb-px ${
+                activeSubTab === 'gantt'
+                  ? 'border-slate-900 text-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Diagrama de Gantt
+            </button>
+            <button
+              onClick={() => setActiveSubTab('table')}
+              className={`pb-2.5 px-3 font-medium transition border-b-2 -mb-px ${
+                activeSubTab === 'table'
+                  ? 'border-slate-900 text-slate-900 font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Tabla de Tiempos y Holguras
+            </button>
           </div>
 
-          {/* Subtab 1: Network Diagram */}
+          {/* Subtab Contents */}
           {activeSubTab === 'network' && (
             <NetworkDiagram
               nodes={result.nodes}
@@ -352,103 +292,62 @@ export default function PertCpmModule() {
             />
           )}
 
-          {/* Subtab 2: Gantt Chart */}
           {activeSubTab === 'gantt' && (
-            <GanttChart
-              activities={result.activities}
-              projectDuration={result.projectDuration}
-            />
+            <GanttChart activities={result.activities} projectDuration={result.projectDuration} />
           )}
 
-          {/* Subtab 3: Detailed Table */}
           {activeSubTab === 'table' && (
-            <div className="space-y-4">
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-800 text-white uppercase font-bold tracking-wider">
-                    <tr>
-                      <th className="py-3 px-3">Actividad</th>
-                      <th className="py-3 px-3">Nombre</th>
-                      <th className="py-3 px-3 text-center">Duración (t)</th>
-                      <th className="py-3 px-3">Predecesores</th>
-                      <th className="py-3 px-3 text-center bg-blue-900/60">ES (Temprano)</th>
-                      <th className="py-3 px-3 text-center bg-blue-900/60">EF (Temprano)</th>
-                      <th className="py-3 px-3 text-center bg-slate-900/80">LS (Tardío)</th>
-                      <th className="py-3 px-3 text-center bg-slate-900/80">LF (Tardío)</th>
-                      <th className="py-3 px-3 text-center bg-amber-900/60">Holgura Total (H)</th>
-                      <th className="py-3 px-3 text-center bg-emerald-900/60">Holgura Libre (HL)</th>
-                      <th className="py-3 px-3 text-center">¿Crítica?</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 font-mono">
-                    {result.activities.map((act) => (
-                      <tr
-                        key={act.id}
-                        className={`transition ${
-                          act.isCritical
-                            ? 'bg-rose-50/70 font-semibold text-rose-950'
-                            : 'hover:bg-slate-50 text-slate-700'
-                        }`}
-                      >
-                        <td className="py-2.5 px-3 font-bold text-sm">
-                          <span className={`px-2 py-0.5 rounded ${
-                            act.isCritical ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-800'
-                          }`}>
-                            {act.id}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 font-sans font-medium text-slate-800">
-                          {act.name}
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-bold">{act.duration}</td>
-                        <td className="py-2.5 px-3">
-                          {act.predecessors.length > 0 ? act.predecessors.join(', ') : '-'}
-                        </td>
-                        <td className="py-2.5 px-3 text-center bg-blue-50/50 font-bold">{act.es}</td>
-                        <td className="py-2.5 px-3 text-center bg-blue-50/50 font-bold">{act.ef}</td>
-                        <td className="py-2.5 px-3 text-center bg-slate-100/50">{act.ls}</td>
-                        <td className="py-2.5 px-3 text-center bg-slate-100/50">{act.lf}</td>
-                        <td className={`py-2.5 px-3 text-center font-bold ${
-                          act.slack === 0 ? 'text-rose-600 bg-rose-100/50' : 'text-amber-800 bg-amber-50/50'
-                        }`}>
+            <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-sans">
+                  <tr>
+                    <th className="py-2.5 px-3 font-medium">Actividad</th>
+                    <th className="py-2.5 px-3 font-medium">Descripción</th>
+                    <th className="py-2.5 px-3 text-center font-medium">Duración</th>
+                    <th className="py-2.5 px-3 font-medium">Predecesores</th>
+                    <th className="py-2.5 px-3 text-center font-medium">ES</th>
+                    <th className="py-2.5 px-3 text-center font-medium">EF</th>
+                    <th className="py-2.5 px-3 text-center font-medium">LS</th>
+                    <th className="py-2.5 px-3 text-center font-medium">LF</th>
+                    <th className="py-2.5 px-3 text-center font-medium">Holgura (H)</th>
+                    <th className="py-2.5 px-3 text-center font-medium">¿Crítica?</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {result.activities.map((act) => (
+                    <tr
+                      key={act.id}
+                      className={act.isCritical ? 'bg-slate-50/70 font-semibold text-slate-900' : 'text-slate-600'}
+                    >
+                      <td className="py-2 px-3 font-bold">{act.id}</td>
+                      <td className="py-2 px-3 font-sans text-slate-800">{act.name}</td>
+                      <td className="py-2 px-3 text-center">{act.duration}</td>
+                      <td className="py-2 px-3">{act.predecessors.length > 0 ? act.predecessors.join(', ') : '-'}</td>
+                      <td className="py-2 px-3 text-center text-slate-500">{act.es}</td>
+                      <td className="py-2 px-3 text-center text-slate-800">{act.ef}</td>
+                      <td className="py-2 px-3 text-center text-slate-500">{act.ls}</td>
+                      <td className="py-2 px-3 text-center text-slate-800">{act.lf}</td>
+                      <td className="py-2 px-3 text-center">
+                        <span className={act.slack === 0 ? 'text-slate-900 font-bold' : 'text-slate-400'}>
                           {act.slack}
-                        </td>
-                        <td className="py-2.5 px-3 text-center bg-emerald-50/50 text-emerald-800 font-bold">
-                          {act.freeSlack}
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          {act.isCritical ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white uppercase tracking-wider">
-                              Sí (Crítica)
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 uppercase tracking-wider">
-                              No
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Formulas Note */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 space-y-1">
-                <div className="font-bold text-slate-800">Fórmulas empleadas (conforme a las Diapositivas):</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 font-mono text-[11px]">
-                  <div>• ES = máx(EF de predecesores)</div>
-                  <div>• EF = ES + duración</div>
-                  <div>• LF = mín(LS de sucesores)</div>
-                  <div>• LS = LF - duración</div>
-                  <div>• Holgura H = LS - ES = LF - EF</div>
-                  <div>• Holgura Libre HL = mín(ES sucesores) - EF</div>
-                </div>
-              </div>
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-center font-sans">
+                        {act.isCritical ? (
+                          <span className="text-[11px] font-semibold text-slate-900">Sí</span>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">No</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       )}
+
     </div>
   );
 }
